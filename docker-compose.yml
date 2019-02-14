@@ -1,0 +1,15 @@
+version: '2'
+services:
+    app:
+        container_name: pivot
+        restart: never
+        build: .
+        ports:
+            - '5000:5000'
+        links:
+            - mongo
+    mongo:
+        container_name: mongo
+        image: mongo
+        ports:
+            - '37017:27017'
