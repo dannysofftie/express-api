@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import AbstractRouter from '../abstracts/Router';
 import { viewRoutes } from '../configs/routes';
-import { resolveLocals } from '../express-locals';
 import { extractCookie } from '../middlewares/Cookies';
+import ResolveLocals from '../utilities/ResolveLocals';
 
 /**
  *  Handle all requests
@@ -44,15 +44,15 @@ class ViewInstance extends AbstractRouter {
         viewRoutes.forEach((route) => {
             if (route.middleware && route.locals) {
                 this.router.get(route.route, route.middleware, async (req, res) => {
-                    res.render(route.view, { ...(await resolveLocals(route.locals, req, res)) });
+                    res.render(route.view, { ...(await ResolveLocals(route.locals, req, res)) });
                 });
             } else if (route.middleware && !route.locals) {
                 this.router.get(route.route, route.middleware, async (req, res) => {
-                    res.render(route.view, { ...(await resolveLocals(route.locals, req, res)) });
+                    res.render(route.view, { ...(await ResolveLocals(route.locals, req, res)) });
                 });
             } else {
                 this.router.get(route.route, async (req, res) => {
-                    res.render(route.view, { ...(await resolveLocals(route.locals, req, res)) });
+                    res.render(route.view, { ...(await ResolveLocals(route.locals, req, res)) });
                 });
             }
         });
