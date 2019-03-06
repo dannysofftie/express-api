@@ -1,8 +1,8 @@
 {
-    "name": "pivot-marketplace",
+    "name": "node-ts-app-scaffold",
     "version": "1.0.0",
-    "description": "Eventage. Doctors consultancy platform",
-    "main": "src/index.ts",
+    "description": "A Node.js Application Scaffold with TypeScript, to ease starting new projects.",
+    "main": "dist/index.js",
     "scripts": {
         "dev": "ts-node-dev --respawn --transpileOnly --no-notify src/index.ts",
         "start": "npm run clean && npm run build && node dist/index.js",
@@ -13,9 +13,9 @@
         "docker-stop": "docker-compose down"
     },
     "keywords": [
-        "eventage",
-        "doctors",
-        "patients"
+        "scaffold",
+        "nodejs",
+        "typescript"
     ],
     "author": "Danny Sofftie",
     "license": "ISC",
