@@ -1,13 +1,6 @@
 import { Transporter, createTransport } from 'nodemailer';
+import { ReadStream } from 'fs';
 import { APP_EMAIL_HOST, APP_EMAIL_ADDRESS, APP_EMAIL_PASSWORD } from '../configs';
-
-interface Options {
-    recipients: string[];
-    message: string | Buffer;
-    subject: string;
-    fromtext: string;
-    tocustomname: string;
-}
 
 /**
  * Email sending and retrival handler
@@ -15,7 +8,7 @@ interface Options {
  * @export
  * @class Email
  */
-export class Email {
+export default class Email {
     /**
      * Custom name to embedd in 'to field'
      *
@@ -71,6 +64,21 @@ export class Email {
     private fromtext: string;
 
     /**
+     * Attachments to attach to email message.
+     *
+     * @private
+     * @type {Array<{
+     *         filename: string;
+     *         content: ReadStream;
+     *     }>}
+     * @memberof Email
+     */
+    private attachments: Array<{
+        filename: string;
+        content: ReadStream;
+    }>;
+
+    /**
      * Creates a new instance to deliver email(s) to specified email address(es)
      * @param {string[]} recipients receiver email address(es) to send email to
      * @param {(string | Buffer)} message message to deliver in html format
@@ -79,34 +87,23 @@ export class Email {
      * @param {string} tocustomname name to embed in `to` field e.g `Valued client`
      * @memberof Email
      */
-    public constructor(options: Options) {
-        this.recipients = options.recipients;
-        this.message = options.message;
-        this.subject = options.subject;
-        this.fromtext = options.fromtext;
-        this.tocustomname = options.tocustomname;
-    }
-
-    /**
-     * Construct transport to send emails
-     *
-     * @returns {Promise<void>}
-     * @memberof Email
-     */
-    public async constructTransport(): Promise<void> {
-        this.transport = createTransport({
-            pool: true,
-            host: APP_EMAIL_HOST,
-            port: APP_EMAIL_HOST.includes('gmail') ? 465 : 25,
-            secure: APP_EMAIL_HOST.includes('gmail') ? true : false,
-            auth: {
-                user: APP_EMAIL_ADDRESS,
-                pass: APP_EMAIL_PASSWORD,
-            },
-            tls: {
-                rejectUnauthorized: false,
-            },
-        });
+    public constructor(
+        recipients: string[],
+        message: string | Buffer,
+        subject: string,
+        fromtext: string,
+        tocustomname: string,
+        attachments?: Array<{
+            filename: string;
+            content: ReadStream;
+        }>,
+    ) {
+        this.recipients = recipients;
+        this.message = message;
+        this.subject = subject;
+        this.fromtext = fromtext;
+        this.tocustomname = tocustomname;
+        attachments && (this.attachments = attachments);
     }
 
     /**
@@ -118,16 +115,39 @@ export class Email {
     public async send(): Promise<string[]> {
         await this.constructTransport();
         const mailstatus: string[] = [];
-        for await (const mail of this.recipients) {
+        this.recipients.forEach(async (recipient) => {
             const response = await this.transport.sendMail({
                 html: this.message,
-                to: `${this.tocustomname} <${mail}>`,
+                to: `${this.tocustomname} <${recipient}>`,
                 from: `${this.fromtext} <${APP_EMAIL_ADDRESS}>`,
                 subject: this.subject,
                 replyTo: APP_EMAIL_ADDRESS,
+                attachments: this.attachments,
             });
             mailstatus.push(response);
-        }
+        });
         return mailstatus;
+    }
+
+    /**
+     * Construct transport to send emails
+     *
+     * @returns {Promise<void>}
+     * @memberof Email
+     */
+    private async constructTransport(): Promise<void> {
+        this.transport = createTransport({
+            pool: true,
+            host: APP_EMAIL_HOST,
+            port: APP_EMAIL_HOST.includes('gmail') ? 465 : 25,
+            secure: false,
+            auth: {
+                user: APP_EMAIL_ADDRESS,
+                pass: APP_EMAIL_PASSWORD,
+            },
+            tls: {
+                rejectUnauthorized: false,
+            },
+        });
     }
 }

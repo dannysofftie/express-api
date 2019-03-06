@@ -15,31 +15,6 @@
  * Methods that return typeof `object` will be declined.
  */
 import { Request, Response } from 'express';
-import { extractCookie } from '../middlewares';
-
-/**
- * Check if there is a user logged in, and allow then access their profiles / dashboard.
- *
- * @param {Request} req - incoming request object
- * @returns
- */
-export async function checkAuthenticatedUser(req: Request) {
-    const cookies: string[] = Object.keys(extractCookie(req.headers.cookie));
-    let authvalue = '';
-    cookies.forEach((cookie) => {
-        if (cookie.includes('pvt-')) {
-            authvalue = extractCookie(req.headers.cookie, cookie) as string;
-        }
-    });
-
-    if (!authvalue) {
-        // @ts-ignore
-        return { loggedin: false, returnurl: req.fullUrl, account: null };
-    }
-
-    // @ts-ignore
-    return { loggedin: true, username: match[0]['username'], path: redirecturl, account: match[0]['account'], returnurl: req.fullUrl };
-}
 
 /**
  * Resolve functions that return variables passed when rendering views.

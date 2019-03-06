@@ -21,7 +21,7 @@ const lu = (req: Request, value: string) => {
  * @export
  * @class Controller
  */
-export abstract class Controller {
+export default abstract class Controller {
     /**
      * Request object for incoming requests to controller classes
      *

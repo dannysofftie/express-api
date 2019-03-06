@@ -1,5 +1,5 @@
-import { Request, Response, Router } from 'express';
-import { AbstractRouter } from '../abstracts/Router';
+import { Router } from 'express';
+import AbstractRouter from '../abstracts/Router';
 import { viewRoutes } from '../configs/routes';
 import { resolveLocals } from '../express-locals';
 import { extractCookie } from '../middlewares/Cookies';
@@ -32,7 +32,7 @@ class ViewInstance extends AbstractRouter {
             const cookies: string[] = Object.keys(extractCookie(req.headers.cookie));
 
             cookies.forEach((cookie) => {
-                if (cookie.includes('pvt-')) {
+                if (cookie.includes('evt-')) {
                     res.clearCookie(cookie);
                 }
             });
@@ -65,13 +65,9 @@ class ViewInstance extends AbstractRouter {
      * @memberof RouterInstance
      */
     protected rejectHandler() {
-        this.router.get('*', (req: Request, res: Response) => {
+        this.router.all('*', (req, res) => {
             console.log(req.url);
-            res.end();
-        });
-
-        this.router.post('*', (req: Request, res: Response) => {
-            res.status(404).json({ error: 'unhandled post route' });
+            res.status(404).json({ error: `Unhandled ${req.method} endpoint` });
         });
     }
 }

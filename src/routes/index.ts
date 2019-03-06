@@ -1,7 +1,5 @@
-import { join } from 'path';
-import { Router, Request, Response } from 'express';
-import { AbstractRouter } from '../abstracts/Router';
-import * as swagger from 'swagger-ui-express';
+import { Router } from 'express';
+import AbstractRouter from '../abstracts/Router';
 
 /**
  *  Handle all requests
@@ -30,8 +28,6 @@ class RouterInstance extends AbstractRouter {
     protected routeHandler() {
         this.router.use('/data', require('./data-routes'));
         this.router.use('/auth', require('./auth-routes'));
-        // handle any other as view route
-        this.router.use('/docs', swagger.serve, swagger.setup(require(join(__dirname, '..', '..', 'swagger.json'))));
         this.router.use('/', require('./view-routes'));
     }
 
@@ -42,12 +38,8 @@ class RouterInstance extends AbstractRouter {
      * @memberof RouterInstance
      */
     protected rejectHandler() {
-        this.router.get('*', (req: Request, res: Response) => {
-            // res.status(404).render('.... 404 page .....')
-        });
-
-        this.router.post('*', (req: Request, res: Response) => {
-            res.status(404).json({ error: 'unhandled post route' });
+        this.router.all('*', (req, res) => {
+            res.status(404).json({ error: `Unhandled ${req.method} endpoint` });
         });
     }
 }

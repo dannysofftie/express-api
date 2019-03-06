@@ -5,7 +5,7 @@ import { Router } from 'express';
  *
  * @class AbstractRouter
  */
-export abstract class AbstractRouter {
+export default abstract class AbstractRouter {
     /**
      *  Instance of express router object
      *

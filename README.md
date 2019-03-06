@@ -1,4 +1,4 @@
-# Pivot Freelance Marketplace
+# Application scaffold
 
 Node.js application scaffold, with support for TypeScript, MongoDB. Has Email library, Authentication middlewares, express locals resolver for use in ejs.
 

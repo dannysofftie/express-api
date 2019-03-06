@@ -4,7 +4,8 @@
     "description": "Eventage. Doctors consultancy platform",
     "main": "src/index.ts",
     "scripts": {
-        "start": "cd src && ts-node-dev --respawn --transpileOnly --no-notify index.ts",
+        "dev": "ts-node-dev --respawn --transpileOnly --no-notify src/index.ts",
+        "start": "npm run clean && npm run build && node dist/index.js",
         "build": "tsc -b",
         "clean": "tsc -b --clean",
         "docker-build": "npm run docker-stop && docker-compose build && docker rmi -f $(docker images --quiet --filter 'dangling=true')",
@@ -19,7 +20,6 @@
     "author": "Danny Sofftie",
     "license": "ISC",
     "dependencies": {
-        "@types/algoliasearch": "^3.30.1",
         "@types/bcrypt": "^3.0.0",
         "@types/body-parser": "^1.17.0",
         "@types/cookie-parser": "^1.4.1",
@@ -33,10 +33,11 @@
         "@types/node": "^10.12.18",
         "@types/nodemailer": "^4.6.5",
         "@types/serve-favicon": "^2.2.30",
-        "algoliasearch": "^3.32.0",
         "aws-sdk": "^2.392.0",
+        "axios": "^0.18.0",
         "bcrypt": "^3.0.3",
         "body-parser": "^1.18.3",
+        "braintree": "^2.15.0",
         "cookie-parser": "^1.4.3",
         "cors": "^2.8.4",
         "dotenv": "^6.1.0",
@@ -48,7 +49,6 @@
         "multer": "^1.4.1",
         "multer-s3": "^2.9.0",
         "nodemailer": "^4.6.8",
-        "nodemon": "^1.18.9",
         "serve-favicon": "^2.5.0",
         "ts-node-dev": "^1.0.0-pre.32",
         "typescript": "^3.2.4"
@@ -58,14 +58,14 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://dannysofftie@bitbucket.org/oratechsolutions/pivotmarketplace.git"
+        "url": "git+git@github.com:dannysofftie/node-ts-app-scaffold.git"
     },
     "bugs": {
-        "url": "https://dannysofftie@bitbucket.org/oratechsolutions/pivotmarketplace.git/issues"
+        "url": "https://github.com/dannysofftie/node-ts-app-scaffold.git/issues"
     },
-    "homepage": "https://dannysofftie@bitbucket.org/oratechsolutions/pivotmarketplace.git#readme",
+    "homepage": "https://github.com/dannysofftie/node-ts-app-scaffold.git#readme",
     "devDependencies": {
-        "@types/swagger-ui-express": "^3.0.0",
-        "prettier": "^1.16.1"
+        "@types/axios": "^0.14.0",
+        "prettier": "^1.16.4"
     }
 }

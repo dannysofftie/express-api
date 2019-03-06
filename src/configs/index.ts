@@ -9,11 +9,14 @@ export const uploadDirectories = {
     gif: join(__dirname, '..', '..', 'uploads', 'gifs'),
     doc: join(__dirname, '..', '..', 'uploads', 'documents'),
     docx: join(__dirname, '..', '..', 'uploads', 'documents'),
+    csv: join(__dirname, '..', '..', 'uploads', 'documents'),
+    txt: join(__dirname, '..', '..', 'uploads', 'documents'),
+    uncategorized: join(__dirname, '..', '..', 'uploads', 'uncategorized'),
 };
 
 export const MONGO_LOCAL_URL = `mongodb://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@${process.env.MONGO_HOST}:27017/${process.env.MONGO_DATABASE}`;
 
-export const MONGO_PROD_URL = 'mongodb+srv://pivot-team:pivot-1234@pivot-cluster-bhspm.gcp.mongodb.net/pivot-db?ssl=true&retryWrites=true';
+export const MONGO_PROD_URL = 'prod-url';
 
 export const SMS_USERNAME = process.env.SMS_USERNAME;
 
@@ -43,4 +46,8 @@ export const BT_PUBLIC_KEY = process.env.BT_PUBLIC_KEY;
 
 export const BT_PRIVATE_KEY = process.env.BT_PRIVATE_KEY;
 
-export const MONGO_DOCKER_URL = 'mongodb://mongo:27017/pivotdb';
+export const MONGO_DOCKER_URL = 'mongodb://mongo:27017/database';
+
+export const USER_1_COOKIE = 'usr-1-ssid';
+
+export const USER_2_COOKIE = 'ust-2-ssid';

@@ -1,36 +1,36 @@
 import { Request, Response } from 'express';
 import { Document } from 'mongoose';
-import { Controller } from '../abstracts/Controller';
+import Controller from '../abstracts/Controller';
 
 /**
- * Create, update, delete and retrieve Activities by freelancers.
+ * Create, update, delete and retrieve SampleController by freelancers.
  *
  * @export
- * @class Activities
+ * @class SampleController
  * @extends {Controller}
  */
-export class Activities extends Controller {
+export default class SampleController extends Controller {
     constructor(request: Request, response: Response) {
         super(request, response);
     }
 
     /**
-     * Interface to update existing Activities previously created by freelancers
+     * Interface to update existing SampleController previously created by freelancers
      *
      * @returns {Promise<Response>}
-     * @memberof Activities
+     * @memberof SampleController
      */
     public async findOneAndUpdate(): Promise<Response> {
         throw new Error('Method not implemented.');
     }
 
     /**
-     * Find and retrieve all Activities available.
+     * Find and retrieve all SampleController available.
      *
-     * These are the Activities previously created by freelancers.
+     * These are the SampleController previously created by freelancers.
      *
      * @returns {Promise<Response>}
-     * @memberof Activities
+     * @memberof SampleController
      */
     public async findAllEntries(): Promise<Response> {
         throw new Error('Method not implemented.');
@@ -42,7 +42,7 @@ export class Activities extends Controller {
      * This is a protected resource.
      *
      * @returns {Promise<Response>}
-     * @memberof Activities
+     * @memberof SampleController
      */
     public async addNewEntry(): Promise<Response> {
         throw new Error('Method not implemented.');
@@ -52,7 +52,7 @@ export class Activities extends Controller {
      * Find matching bid, probably from search
      *
      * @returns {Promise<Response>}
-     * @memberof Activities
+     * @memberof SampleController
      */
     public async findOneEntry(internal?: boolean): Promise<Response | Document[]> {
         throw new Error('Method not implemented.');

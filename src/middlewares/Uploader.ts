@@ -27,7 +27,7 @@ const createRandomFileName = (file: Express.Multer.File) => {
  */
 const awsSimpleStorage = multers3({
     s3: new awssdk.S3(),
-    bucket: 'pivot-marketplace-bucket',
+    bucket: 'amazon-s3-bucket-name',
     acl: 'public-read',
     metadata(req, file, cb) {
         cb(null, { fieldName: file.fieldname });
@@ -46,9 +46,9 @@ const awsSimpleStorage = multers3({
 const localStorage = multer.diskStorage({
     destination: (req, file, cb) => {
         Object.keys(uploadDirectories).forEach((dir) => {
-            !existsSync(uploadDirectories[dir]) && mkdirSync(uploadDirectories[dir]);
+            !existsSync(uploadDirectories[dir]) && mkdirSync(uploadDirectories[dir], { recursive: true });
         });
-        cb(null, uploadDirectories[file.originalname.split('.')[1]]);
+        cb(null, uploadDirectories[file.originalname.split('.')[1]] || uploadDirectories['uncategorized']);
     },
     filename: (req, file, cb) => {
         cb(null, createRandomFileName(file));

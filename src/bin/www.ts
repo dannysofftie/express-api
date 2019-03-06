@@ -11,6 +11,7 @@ import * as serveFavicon from 'serve-favicon';
 import { AMZN_ACCESS_KEY_ID, AMZN_SECRET_ACCESS_KEY, MONGO_LOCAL_URL, MONGO_PROD_URL, MONGO_DOCKER_URL, uploadDirectories } from '../configs';
 import * as cors from 'cors';
 import * as moment from 'moment';
+
 require('moment-duration-format');
 
 /**
@@ -19,7 +20,7 @@ require('moment-duration-format');
  * @export
  * @class AppServer
  */
-export class App {
+export default class App {
     /**
      * Instance of express application object
      *

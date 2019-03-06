@@ -1,3 +1,3 @@
-import { App } from './bin/www';
+import App from './bin/www';
 
 new App().start();
