@@ -1,0 +1,11 @@
+How to generate private key and public key pair for use
+in signing, verifying and decoding jwt tokens
+
+Change working directory to config folder before running below commands
+
+Step I:
+ Run command in terminal `ssh-keygen -t rsa -P "" -b 4096 -m PEM -f jwtRS256.key` to generate corresponding public key
+
+Step II:
+ Delete `jwtRS256.key.pub` if it exists then run `openssl rsa -in jwtRS256.key -pubout -outform PEM -out jwtRS256.key.pub`
+ to generate corresponding public key

@@ -6,7 +6,7 @@ Node.js application scaffold, with support for TypeScript, MongoDB. Has Email li
 
 _Before you proceed, ensure you have Node.js, TypeScript and MongoDB installed._
 
-1. Clone this project
+1.  Clone this project
 
     `git clone git@github.com:dannysofftie/node-ts-app-scaffold.git`
 
@@ -22,15 +22,18 @@ _Before you proceed, ensure you have Node.js, TypeScript and MongoDB installed._
 
     `git remote -v`
 
-2. Install dependencies
+2.  Install dependencies
 
     `cd node-ts-app-scaffold && npm install`
 
-3. Start app server
+3.  Start app server
 
-    `npm start`
+    `npm run dev`
 
-Only the `master` branch will be deployed to the server. Deploying development build will not be necessary.
+4.  Uses token based authentication, open `instructions.txt` file in config folder for instructions on how to generate private/public key pair.
+
+
+    Only the `master` branch will be deployed to the server. Deploying development build will not be necessary.
 
 ## Testing locally
 
