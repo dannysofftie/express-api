@@ -86,7 +86,7 @@ export default class App {
      */
     private configs() {
         // add all static file folders asynchronoulsy
-        [...this.staticfolders, ...Object.values(uploadDirectories)].forEach((dir) => {
+        [...this.staticfolders, ...Object.values(uploadDirectories)].forEach(dir => {
             this.app.use(express.static(join(dir)));
         });
 
@@ -101,9 +101,21 @@ export default class App {
             res.setHeader('X-Frame-Options', 'SAMEORIGIN');
             next();
         });
+
+        this.app.use((req, res, next) => {
+            try {
+                const request = (req.headers['X-Requested-With'] || (req.headers['content-type'].includes('application/json') && 'XMLHttpRequest')) as string;
+                // @ts-ignore
+                req.ajax = request;
+            } catch {
+                //
+            }
+            next();
+        });
+
         this.app.use((req, res, next) => {
             // @ts-ignore
-            req.fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+            req.url = req.protocol + '://' + req.get('host') + req.originalUrl;
             return next();
         });
 
@@ -117,7 +129,7 @@ export default class App {
             .then(() => {
                 console.log('Mongo connected successfully');
             })
-            .catch((e) => console.log(e));
+            .catch(e => console.log(e));
 
         // configure amazon aws globally
         // the sdk instance will be accessible anywhere within the app without instantiating again
