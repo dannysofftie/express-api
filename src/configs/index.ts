@@ -17,11 +17,6 @@ export const uploadDirectories = {
 export const MONGO_LOCAL_URL = `mongodb://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@${process.env.MONGO_HOST}:27017/${process.env.MONGO_DATABASE}`;
 
 export const MONGO_PROD_URL = 'prod-url';
-
-export const SMS_USERNAME = process.env.SMS_USERNAME;
-
-export const SMS_API_KEY = process.env.SMS_API_KEY;
-
 export const APP_EMAIL_ADDRESS = process.env.APP_EMAIL_ADDRESS;
 
 export const APP_EMAIL_PASSWORD = process.env.APP_EMAIL_PASSWORD;

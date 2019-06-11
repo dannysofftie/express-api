@@ -126,4 +126,8 @@ export default class Braintree {
 
         return result.transaction;
     }
+
+    public async createCustomer() {
+        //
+    }
 }
