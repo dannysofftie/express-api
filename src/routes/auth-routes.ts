@@ -5,6 +5,7 @@ import { compareSync } from 'bcrypt';
 import { extractCookie } from '../middlewares';
 import { USER_1_COOKIE, USER_2_COOKIE } from '../configs';
 import SampleController from '../controllers/SampleController';
+import Token from '../utilities/Token';
 
 /**
  * Data placeholders for returned matches during sign in.
@@ -14,8 +15,6 @@ import SampleController from '../controllers/SampleController';
 interface IAuth {
     user: string;
     cookie: string;
-    path: string;
-    value: string;
     password: string;
     error: string;
 }
@@ -45,6 +44,8 @@ class AuthRoutes extends AbstractRouter {
      */
     protected routeHandler(): void {
         this.router.post('/signin', async (req, res) => {
+            const request = req.headers['X-Requested-With'] || req.headers['content-type'] === 'application/json';
+
             /**
              * Handle authentication into the platform and set appropriate authentication cookies
              *
@@ -56,33 +57,28 @@ class AuthRoutes extends AbstractRouter {
             async function authenticateSignIn(req: Request, res: Response): Promise<IAuth | any | Response> {
                 const data: IAuth = {
                     user: null,
-                    path: null,
                     cookie: null,
-                    value: null,
                     password: null,
                     error: null,
                 };
 
-                const assign = (options: { cookie: string; path: string; data: Document }) => {
-                    data['user'] = options.path;
+                const assign = (options: { cookie: string; user: string; data: Document }) => {
+                    data['user'] = options.user;
                     data['cookie'] = options.cookie;
-                    data['value'] = options.data['_id'];
-                    data['path'] = options.path;
                     data['password'] = options.data['password'];
-                    data['username'] = options.data['username'];
                 };
 
                 const user: Document[] = (await new SampleController(req, res).findOneEntry(true)) as Document[];
 
                 if (user.length) {
                     let value = '';
-                    if (user[0]['account'] === 'user_1') {
+                    if (user[0]['account'] === 'user-1') {
                         value = USER_1_COOKIE;
                     }
-                    if (user[0]['account'] === 'user_2') {
+                    if (user[0]['account'] === 'user-1') {
                         value = USER_2_COOKIE;
                     }
-                    assign({ cookie: value, path: '/' + user[0]['username'], data: user[0] });
+                    assign({ cookie: value, user: user[0]['account'], data: user[0] });
                 } else {
                     return data;
                 }
@@ -93,21 +89,43 @@ class AuthRoutes extends AbstractRouter {
             const match = (await authenticateSignIn(req, res)) as any;
 
             if (!match.user) {
-                return res.redirect('/login?m=not-exist');
+                if (!request) {
+                    return res.redirect(301, '/?utm_source=authentication-redirect');
+                }
+
+                return res.status(200).json({ message: 'error', token: null });
             }
             if (!compareSync(req.body['password'], match.password)) {
-                return res.redirect('/login?m=password-mismatch');
+                if (!request) {
+                    return res.redirect(301, '/?utm_source=authentication-redirect');
+                }
+
+                return res.status(200).json({ message: 'error', token: null });
             }
 
             const cookies: {} = extractCookie(req.headers.cookie) as {};
             for (const cookie in cookies) {
-                if (cookie.startsWith('evt')) {
+                if (cookie.startsWith(USER_1_COOKIE.slice(0, 3) || 'token')) {
                     res.clearCookie(cookie);
                 }
             }
 
-            res.cookie(match.cookie, match.value.toString(), { maxAge: 1000 * 60 * 60 * 24 * 31 });
-            return res.redirect(match['path']);
+            const payload = {
+                email: req.body['email'],
+                account: match['user'],
+                password: req.body['password'],
+            };
+
+            const token = Token.sign(payload);
+
+            res.cookie(match.cookie, token, { maxAge: 1000 * 60 * 60 * 24 * 365 });
+
+            if (request) {
+                return res.status(200).json({ message: 'success', user: match['user'], token });
+            }
+
+            // find a way to handle redirection when request did not originate from xmlhttprequest source
+            return res.status(200).json({ message: 'success', user: match['user'], token });
         });
     }
 
