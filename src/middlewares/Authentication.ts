@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import Token from '../utilities/Token';
+import { JWTToken } from '../utils/Token';
 import { extractCookie } from './Cookies';
 
 /**
@@ -18,26 +18,16 @@ import { extractCookie } from './Cookies';
  * @param {NextFunction} next
  * @returns {(Promise<void | Response>)}
  */
-export async function secureCreative(req: Request, res: Response, next: NextFunction): Promise<void | Response> {
-    const authvalue = (extractCookie(req.headers.cookie, 'user-cookie-name') as string) || req.headers['authorization'].toString().split(' ')[1];
+export async function secureUserAccount(req: Request, res: Response, next: NextFunction): Promise<void | Response> {
+    const authvalue = (extractCookie(req.headers.cookie, 'token') as string) || req.headers['authorization'].toString().split(' ')[1];
 
     if (authvalue) {
-        const decoded = Token.verify(authvalue);
-        if (decoded['account'] === 'creative') {
+        const decoded = JWTToken.verify(authvalue);
+        if (decoded['account']) {
             return next();
         }
 
-        // @ts-ignore
-        if (!req.ajax) {
-            return res.redirect(301, '/?utm_source=authentication-redirect');
-        }
-
         return res.status(403).json({ error: 'forbidden' });
-    }
-
-    // @ts-ignore
-    if (!req.ajax) {
-        return res.redirect(301, '/?utm_source=authentication-redirect');
     }
 
     return res.status(403).json({ error: 'forbidden' });

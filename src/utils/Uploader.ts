@@ -1,9 +1,13 @@
-import * as awssdk from 'aws-sdk';
 import { randomBytes } from 'crypto';
 import { existsSync, mkdirSync } from 'fs';
 import * as multer from 'multer';
-import * as multers3 from 'multer-s3';
 import { uploadDirectories } from '../configs';
+import { extname } from 'path';
+import { configs } from '../configs';
+
+export type MulterInstance = multer.Instance;
+
+export type FilePathExtractor = (filename: string) => string;
 
 /**
  * Create a random file name for every file into the file system.
@@ -15,27 +19,11 @@ import { uploadDirectories } from '../configs';
  */
 const createRandomFileName = (file: Express.Multer.File) => {
     const name: string = randomBytes(18).toString('hex');
+
     const ext: string = file.originalname.split('.')[1];
+
     return name + '.' + ext;
 };
-
-/**
- * Returns an instance of Amazon S3 multer middleware, for uploading file to Amazon S3
- * Storage.
- *
- *  - Returns file path as url
- */
-const awsSimpleStorage = multers3({
-    s3: new awssdk.S3(),
-    bucket: 'amazon-s3-bucket-name',
-    acl: 'public-read',
-    metadata(req, file, cb) {
-        cb(null, { fieldName: file.fieldname });
-    },
-    key(req, file, cb) {
-        cb(null, createRandomFileName(file));
-    },
-});
 
 /**
  * Returns an instance of local multer middleware, for uploading file to local file system
@@ -45,15 +33,35 @@ const awsSimpleStorage = multers3({
  */
 const localStorage = multer.diskStorage({
     destination: (req, file, cb) => {
-        Object.keys(uploadDirectories).forEach((dir) => {
+        Object.keys(uploadDirectories).forEach(dir => {
             !existsSync(uploadDirectories[dir]) && mkdirSync(uploadDirectories[dir], { recursive: true });
         });
-        cb(null, uploadDirectories[file.originalname.split('.')[1]] || uploadDirectories['uncategorized']);
+
+        const rootPath = uploadDirectories[extname(file.originalname).split('.')[1]];
+
+        // Check if current request is authorized
+        // create directory for thet user if doesn't exist,
+        // and return the new path. This will allow users to browse files within a directory
+        // that only them have access to.
+
+        cb(null, rootPath || uploadDirectories['other']);
     },
     filename: (req, file, cb) => {
         cb(null, createRandomFileName(file));
     },
 });
+
+export const extractFilePath = (filename: string) => {
+    if (!filename) {
+        return null;
+    }
+
+    const rootPath = uploadDirectories[extname(filename).split('.')[1]];
+
+    const dir: string = rootPath || uploadDirectories['other'];
+
+    return configs.apiurl + '/uploads' + dir.split('/uploads')[1] + '/' + filename;
+};
 
 /**
  * Multer is a node.js middleware for handling multipart/form-data, which is primarily used for uploading files.
@@ -66,5 +74,5 @@ const localStorage = multer.diskStorage({
  *
  */
 export const uploader: multer.Instance = multer({
-    storage: process.env.NODE_ENV === 'production' ? awsSimpleStorage : localStorage,
+    storage: localStorage,
 });

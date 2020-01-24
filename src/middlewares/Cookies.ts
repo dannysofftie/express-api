@@ -20,7 +20,7 @@ export function extractCookie(cookieString: string | string[], cookieName?: stri
     if (typeof d === 'string') {
         e[d.split('=')[0].trim()] = d.split('=')[1];
     } else {
-        d.map((p) => (e[p.split('=')[0].trim()] = p.split('=')[1]));
+        d.map(p => (e[p.split('=')[0].trim()] = p.split('=')[1]));
     }
 
     if (typeof cookieName !== 'undefined') {

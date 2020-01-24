@@ -1,18 +1,15 @@
-#!/usr/bin/env node
-
-import * as awssdk from 'aws-sdk';
 import * as bodyParser from 'body-parser';
 import * as cookieParser from 'cookie-parser';
+import * as cors from 'cors';
 import * as express from 'express';
 import { createServer, Server } from 'http';
-import * as mongoose from 'mongoose';
+import * as moment from 'moment';
 import { join } from 'path';
 import * as serveFavicon from 'serve-favicon';
-import { AMZN_ACCESS_KEY_ID, AMZN_SECRET_ACCESS_KEY, MONGO_LOCAL_URL, MONGO_PROD_URL, MONGO_DOCKER_URL, uploadDirectories } from '../configs';
-import * as cors from 'cors';
-import * as moment from 'moment';
-
-require('moment-duration-format');
+import configs from '../configs';
+import models from '../models';
+import utils from '../utils';
+import views from '../routes/views';
 
 /**
  * Server class, configs and route handler
@@ -48,22 +45,11 @@ export default class App {
      */
     private port: number | string;
 
-    /**
-     * Static folder where static assets will be served, includes uploads directory.
-     *
-     * @private
-     * @type {string[]}
-     * @memberof PivotServer
-     */
-    private staticfolders: string[];
-
     constructor() {
         this.port = process.env.PORT || 5000;
-        this.staticfolders = [join(__dirname, '..', '..', 'public'), join(__dirname, '..', '..', 'uploads')];
         this.app = express();
         this.server = createServer(this.app);
         this.configs();
-        this.routes();
     }
 
     /**
@@ -85,10 +71,29 @@ export default class App {
      * @memberof AppServer
      */
     private configs() {
-        // add all static file folders asynchronoulsy
-        [...this.staticfolders, ...Object.values(uploadDirectories)].forEach(dir => {
-            this.app.use(express.static(join(dir)));
-        });
+        this.app['register'] = (fn: (app: express.Application, opts?: any, done?: (err?: Error) => void) => void, opts?: any) => {
+            const originalMethod = fn;
+
+            if (typeof fn !== 'function') {
+                throw new TypeError('fn is not a function');
+            }
+
+            // validate that this plugin has not been registered before
+
+            // execute register plugin
+            fn(this.app, opts);
+        };
+
+        this.app['decorate'] = (name: string, decoration: any) => {
+            if (this.app[name]) {
+                throw new Error(`A decorator with a similar name ${name} has already been registered!`);
+            }
+
+            this.app[name] = decoration;
+        };
+
+        this.app.use(express.static(join(__dirname, '..', '..', 'uploads')));
+        this.app.use(express.static(join(__dirname, '..', '..', 'public')));
 
         this.app.set('view engine', 'ejs');
         this.app.set('views', join(__dirname, '..', '..', 'views'));
@@ -102,49 +107,16 @@ export default class App {
             next();
         });
 
-        this.app.use((req, res, next) => {
-            try {
-                const request = (req.headers['X-Requested-With'] || (req.headers['content-type'].includes('application/json') && 'XMLHttpRequest')) as string;
-                // @ts-ignore
-                req.ajax = request;
-            } catch {
-                //
-            }
-            next();
-        });
-
-        this.app.use((req, res, next) => {
-            // @ts-ignore
-            req.url = req.protocol + '://' + req.get('host') + req.originalUrl;
-            return next();
-        });
-
         // set up moment js for parsing dates and time
         this.app.locals.moment = moment;
 
-        mongoose
-            .connect(process.env.NODE_ENV === 'production' ? MONGO_PROD_URL : process.env.NODE_ENV === 'in-docker' ? MONGO_DOCKER_URL : MONGO_LOCAL_URL, {
-                useNewUrlParser: true,
-            })
-            .then(() => {
-                console.log('Mongo connected successfully');
-            })
-            .catch(e => console.log(e));
+        this.app.register(configs);
 
-        // configure amazon aws globally
-        // the sdk instance will be accessible anywhere within the app without instantiating again
-        awssdk.config.update({ accessKeyId: AMZN_ACCESS_KEY_ID, secretAccessKey: AMZN_SECRET_ACCESS_KEY });
-    }
+        this.app.register(utils);
 
-    /**
-     * Server router handler
-     *
-     * @privates
-     * @memberof AppServer
-     */
-    private routes() {
-        // handle all requests and forward to router
-        this.app.use('/', require('../routes'));
+        this.app.register(models);
+
+        this.app.register(views);
     }
 
     /**

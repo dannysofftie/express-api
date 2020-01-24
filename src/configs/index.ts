@@ -1,6 +1,7 @@
+import { config } from 'dotenv';
 import { join } from 'path';
-
-require('dotenv').config();
+import { IEmailConfigs } from '../libraries/Email';
+import { Application } from 'express';
 
 export const uploadDirectories = {
     png: join(__dirname, '..', '..', 'uploads', 'images'),
@@ -11,38 +12,56 @@ export const uploadDirectories = {
     docx: join(__dirname, '..', '..', 'uploads', 'documents'),
     csv: join(__dirname, '..', '..', 'uploads', 'documents'),
     txt: join(__dirname, '..', '..', 'uploads', 'documents'),
-    uncategorized: join(__dirname, '..', '..', 'uploads', 'uncategorized'),
+    other: join(__dirname, '..', '..', 'uploads', 'other'),
 };
 
-export const MONGO_LOCAL_URL = `mongodb://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@${process.env.MONGO_HOST}:27017/${process.env.MONGO_DATABASE}`;
+config();
 
-export const MONGO_PROD_URL = 'prod-url';
-export const APP_EMAIL_ADDRESS = process.env.APP_EMAIL_ADDRESS;
+export interface IConfig {
+    firebaseAccountJsonFile: string;
+    apiurl: string;
+    mongouri: string;
+    apikey?: string;
+    jwtsecret: string;
+    mail: IEmailConfigs;
+    appname: string;
+    rootPath: string;
+}
 
-export const APP_EMAIL_PASSWORD = process.env.APP_EMAIL_PASSWORD;
+const production = process.env.NODE_ENV === `production`;
 
-export const APP_EMAIL_HOST = process.env.APP_EMAIL_HOST;
+const gsuite = true;
 
-export const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
+const serviceKey = /** require('../../config/sample-service-3fe9c0354d05.json') */ {};
 
-export const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET;
+export const configs: IConfig = {
+    apiurl: (() => {
+        if (production) {
+            return process.env.API_PROD_URL;
+        }
 
-export const RESOLVED_APP_URL = process.env.NODE_ENV === 'production' ? process.env.APP_PROD_URL : process.env.APP_LOCAL_URL;
+        return process.env.API_LOCAL_URL;
+    })(),
+    mongouri: process.env.MONGO_PROD_URL,
+    jwtsecret: process.env.JWT_SECRET_KEY,
+    mail: {
+        host: process.env.APP_EMAIL_HOST,
+        port: process.env.APP_EMAIL_HOST.includes('gmail') || process.env.APP_EMAIL_HOST.includes('zoho') ? 465 : 25,
+        auth: {
+            user: process.env.APP_EMAIL_ADDRESS,
+            ...(!gsuite && { pass: process.env.APP_EMAIL_PASSWORD }),
+            ...(gsuite && {
+                type: 'OAuth2',
+                privateKey: serviceKey['private_key'],
+                serviceClient: serviceKey['client_id'],
+            }),
+        },
+    },
+    appname: process.env.APPLICATION_NAME,
+    rootPath: '/fht61s',
+    firebaseAccountJsonFile: join(__dirname, '..', '..', 'config', 'isample-adminsdk-adgra-26b5699c31.json'),
+};
 
-export const AMZN_ACCESS_KEY_ID = process.env.AMZN_ACCESS_KEY_ID;
-
-export const AMZN_SECRET_ACCESS_KEY = process.env.AMZN_SECRET_ACCESS_KEY;
-
-export const BT_ENVIRONMENT = process.env.BT_ENVIRONMENT;
-
-export const BT_MERCHANT_ID = process.env.BT_MERCHANT_ID;
-
-export const BT_PUBLIC_KEY = process.env.BT_PUBLIC_KEY;
-
-export const BT_PRIVATE_KEY = process.env.BT_PRIVATE_KEY;
-
-export const MONGO_DOCKER_URL = 'mongodb://mongo:27017/database';
-
-export const USER_1_COOKIE = 'usr-1-ssid';
-
-export const USER_2_COOKIE = 'ust-2-ssid';
+export default (app: Application, opts: any, done: (err?: Error) => void) => {
+    app.decorate('configs', configs);
+};

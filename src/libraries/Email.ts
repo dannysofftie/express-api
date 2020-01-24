@@ -1,14 +1,32 @@
-import { Transporter, createTransport } from 'nodemailer';
 import { ReadStream } from 'fs';
-import { APP_EMAIL_HOST, APP_EMAIL_ADDRESS, APP_EMAIL_PASSWORD } from '../configs';
+import { minify } from 'html-minifier';
+import { createTransport, Transporter } from 'nodemailer';
+import { configs } from '../configs';
+
+export interface IEmailOptions {
+    recipients: string | string[];
+    message: string | Buffer;
+    subject: string;
+    fromtext: string;
+    tocustomname: string;
+    attachments?: Array<{ filename: string; content: ReadStream }>;
+}
+
+export interface IEmailConfigs {
+    host: string;
+    port: number;
+    auth: {
+        user: string;
+        pass: string;
+    };
+}
 
 /**
- * Email sending and retrival handler
+ * Email sending library
  *
- * @export
  * @class Email
  */
-export default class Email {
+class Email {
     /**
      * Custom name to embedd in 'to field'
      *
@@ -25,7 +43,7 @@ export default class Email {
      * @type {string[]}
      * @memberof Email
      */
-    private recipients: string[];
+    private recipients: string | string[];
 
     /**
      * Message to deliver to specified emails
@@ -79,71 +97,61 @@ export default class Email {
     }>;
 
     /**
-     * Creates a new instance to deliver email(s) to specified email address(es)
-     * @param {string[]} recipients receiver email address(es) to send email to
-     * @param {(string | Buffer)} message message to deliver in html format
-     * @param {string} subject subject of the email to send e.g `Your request has been processed`
-     * @param {string} fromtext name to embed in `from` field e.g `Holiday invitation`
-     * @param {string} tocustomname name to embed in `to` field e.g `Valued client`
+     * Email configurations
+     *
+     * @private
+     * @type {IEmailConfigs}
      * @memberof Email
      */
-    public constructor(
-        recipients: string[],
-        message: string | Buffer,
-        subject: string,
-        fromtext: string,
-        tocustomname: string,
-        attachments?: Array<{
-            filename: string;
-            content: ReadStream;
-        }>,
-    ) {
-        this.recipients = recipients;
-        this.message = message;
-        this.subject = subject;
-        this.fromtext = fromtext;
-        this.tocustomname = tocustomname;
-        attachments && (this.attachments = attachments);
+    private configs: IEmailConfigs;
+
+    constructor(config: IEmailConfigs, opts: IEmailOptions) {
+        this.configs = config;
+        this.recipients = opts.recipients;
+        this.message = opts.message;
+        this.subject = opts.subject;
+        this.fromtext = opts.fromtext;
+        this.tocustomname = opts.tocustomname;
+        opts.attachments && (this.attachments = opts.attachments);
     }
 
-    /**
-     * Execute send to send email to passed email addresses
-     *
-     * @returns {Promise<string[]>}
-     * @memberof Email
-     */
-    public async send(): Promise<string[]> {
-        await this.constructTransport();
-        const mailstatus: string[] = [];
-        this.recipients.forEach(async (recipient) => {
-            const response = await this.transport.sendMail({
-                html: this.message,
-                to: `${this.tocustomname} <${recipient}>`,
-                from: `${this.fromtext} <${APP_EMAIL_ADDRESS}>`,
+    public async send() {
+        this.constructTransport();
+        const delivery: any[] = [];
+
+        if (typeof this.recipients === 'string') {
+            return await this.transport.sendMail({
+                html: minify(this.message as string, { collapseWhitespace: true }),
+                to: `${this.tocustomname} <${this.recipients}>`,
+                from: `${this.fromtext} <${this.configs.auth.user}>`,
                 subject: this.subject,
-                replyTo: APP_EMAIL_ADDRESS,
+                replyTo: this.configs.auth.user,
                 attachments: this.attachments,
             });
-            mailstatus.push(response);
-        });
-        return mailstatus;
+        }
+
+        for (const recipient of this.recipients) {
+            const res = await this.transport.sendMail({
+                html: minify(this.message as string, { collapseWhitespace: true }),
+                to: `${this.tocustomname} <${recipient}>`,
+                from: `${this.fromtext} <${this.configs.host}>`,
+                subject: this.subject,
+                replyTo: this.configs.host,
+                attachments: this.attachments,
+            });
+            delivery.push(res);
+        }
+        return delivery;
     }
 
-    /**
-     * Construct transport to send emails
-     *
-     * @returns {Promise<void>}
-     * @memberof Email
-     */
-    private async constructTransport(): Promise<void> {
+    private constructTransport() {
         this.transport = createTransport({
             pool: true,
-            host: APP_EMAIL_HOST,
-            port: APP_EMAIL_HOST.includes('gmail') ? 465 : 25,
+            host: this.configs.host,
             secure: false,
+            port: this.configs.port,
             auth: {
-                user: APP_EMAIL_ADDRESS,
-                pass: APP_EMAIL_PASSWORD,
+                ...this.configs.auth,
             },
             tls: {
                 rejectUnauthorized: false,
@@ -151,3 +159,11 @@ export default class Email {
         });
     }
 }
+
+export interface IEmail {
+    sendEmail: (emailopts: IEmailOptions) => Promise<any>;
+}
+
+export const sendEmail = async (emailopts: IEmailOptions) => {
+    return new Email({ ...configs.mail }, emailopts).send();
+};

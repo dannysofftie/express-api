@@ -4,14 +4,17 @@
     "description": "A Node.js Application Scaffold with TypeScript, to ease starting new projects.",
     "main": "dist/index.js",
     "scripts": {
-        "dev": "ts-node-dev --respawn --transpileOnly --no-notify src/index.ts",
-        "start": "npm run clean && npm run build && node dist/index.js",
-        "build": "tsc -b",
+        "dev": "ts-node-dev --respawn --no-notify --files --ignore-watch node_modules src/index.ts",
+        "dev:docker": "docker run -it --rm --name express-api -p 5400:5000 -v $(pwd):/app username/express-api npm run dev",
+        "start": "node dist/index.js",
+        "start:docker": "docker run --rm --name express-api -p 5400:5000 -d username/express-api npm start",
+        "build": "npm run clean && tsc -b --listEmittedFiles",
+        "build:docker": "docker build -t username/express-api . && docker rmi -f $(docker images -f 'dangling=true' -q)",
         "clean": "tsc -b --clean",
         "debug": "node --inspect -r ts-node/register src/index.ts",
-        "docker-build": "npm run docker-stop && docker-compose build && docker rmi -f $(docker images --quiet --filter 'dangling=true')",
-        "docker-start": "docker-compose up",
-        "docker-stop": "docker-compose down"
+        "docker-stop": "docker-compose down",
+        "lint": "eslint src/**/*.ts",
+        "lint:fix": "npm run lint -- --fix"
     },
     "keywords": [
         "scaffold",
@@ -21,52 +24,44 @@
     "author": "Danny Sofftie",
     "license": "ISC",
     "dependencies": {
-        "aws-sdk": "^2.392.0",
-        "axios": "^0.19.0",
-        "bcrypt": "^3.0.3",
-        "body-parser": "^1.18.3",
-        "braintree": "^2.15.0",
-        "cookie-parser": "^1.4.3",
-        "cors": "^2.8.4",
-        "dotenv": "^6.1.0",
-        "ejs": "^2.6.1",
-        "express": "^4.16.4",
+        "axios": "^0.19.2",
+        "bcrypt": "^3.0.7",
+        "body-parser": "^1.19.0",
+        "cookie-parser": "^1.4.4",
+        "cors": "^2.8.5",
+        "dotenv": "^8.2.0",
+        "ejs": "^3.0.1",
+        "express": "^4.17.1",
+        "html-minifier": "^4.0.0",
         "jsonwebtoken": "^8.5.1",
         "moment": "^2.24.0",
-        "moment-duration-format": "^2.2.2",
-        "mongoose": "^5.3.14",
-        "multer": "^1.4.1",
-        "multer-s3": "^2.9.0",
-        "nodemailer": "^4.6.8",
-        "serve-favicon": "^2.5.0",
-        "ts-node-dev": "^1.0.0-pre.32",
-        "typescript": "^3.2.4"
+        "mongoose": "^5.8.9",
+        "multer": "^1.4.2",
+        "nodemailer": "^6.4.2",
+        "serve-favicon": "^2.5.0"
     },
     "engines": {
-        "node": "11.5.0"
+        "node": "12.14.1"
     },
     "repository": {
         "type": "git",
-        "url": "git+git@github.com:dannysofftie/node-ts-app-scaffold.git"
+        "url": "git@github.com:dannysofftie/express-api.git"
     },
     "bugs": {
-        "url": "https://github.com/dannysofftie/node-ts-app-scaffold.git/issues"
+        "url": "https://github.com/dannysofftie/express-api.git/issues"
     },
-    "homepage": "https://github.com/dannysofftie/node-ts-app-scaffold.git#readme",
+    "homepage": "https://github.com/dannysofftie/express-api.git#readme",
     "devDependencies": {
         "@types/bcrypt": "^3.0.0",
-        "@types/body-parser": "^1.17.0",
-        "@types/cookie-parser": "^1.4.1",
-        "@types/cors": "^2.8.4",
-        "@types/dotenv": "^4.0.3",
-        "@types/ejs": "^2.6.0",
-        "@types/express": "^4.16.0",
-        "@types/mongoose": "^5.3.1",
-        "@types/multer": "^1.3.7",
-        "@types/multer-s3": "^2.7.6",
-        "@types/node": "^11.11.3",
-        "@types/nodemailer": "^4.6.5",
-        "@types/serve-favicon": "^2.2.30",
-        "prettier": "^1.16.4"
+        "@types/ejs": "^3.0.0",
+        "@types/express": "^4.17.2",
+        "@types/html-minifier": "^3.5.3",
+        "@types/mongoose": "^5.5.42",
+        "@types/multer": "^1.3.10",
+        "@types/node": "^13.1.8",
+        "@types/nodemailer": "^6.4.0",
+        "prettier": "^1.19.1",
+        "ts-node-dev": "^1.0.0-pre.44",
+        "typescript": "^3.7.5"
     }
 }

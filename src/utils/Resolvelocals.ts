@@ -1,4 +1,11 @@
+import { Request, Response } from 'express';
+
+// tslint:disable-next-line:ban-types
+export type ResolveLocals = (locals: Function | Function[], req: Request, res: Response) => Promise<object>;
+
 /**
+ * Resolve functions that return variables passed when rendering views.
+ *
  * Application level locals.
  *
  * Locals defined by these methods will be rendered by ejs templating engine as data variables.
@@ -13,12 +20,6 @@
  *  - Must return typeof `string`, `number`, or `undefined`
  *
  * Methods that return typeof `object` will be declined.
- */
-import { Request, Response } from 'express';
-
-/**
- * Resolve functions that return variables passed when rendering views.
- *
  * Allow multiple functions to be called, returning a single object for efficiency and simplicity.
  *
  * @param locals - functions to return variables to be rendered as express locals
@@ -44,7 +45,7 @@ export default async function(locals: Function | Function[], req: Request, res: 
     for await (const obj of result) {
         // some functions may not return an object,
         // handle non-object return types
-        typeof obj === 'object' && Object.keys(obj).forEach((key) => (data[key] = obj[key]));
+        typeof obj === 'object' && Object.keys(obj).forEach(key => (data[key] = obj[key]));
     }
 
     return data;
